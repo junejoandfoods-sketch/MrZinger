@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Zinger - Order Delicious Burgers & Fast Food</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#E53E3E',
+                            darkred: '#9B2C2C',
+                            yellow: '#ECC94B',
+                            darkyellow: '#D69E2E',
+                            orange: '#DD6B20',
+                            dark: '#1A202C',
+                            card: '#2D3748'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Outfit', sans-serif; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a202c; }
+        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e53e3e; }
+        .slide-transition { transition: all 0.5s ease-in-out; }
+    </style>
+
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</head>
+
+<body class="bg-gray-950 text-gray-100 min-h-full flex flex-col selection:bg-brand-red selection:text-white">
+
+    <!-- TOP NOTIFICATION / APP INSTALL BANNER -->
+    <div id="install-banner" class="bg-gradient-to-r from-brand-red via-brand-orange to-brand-yellow text-white px-4 py-2.5 text-sm font-medium flex items-center justify-between shadow-md relative z-50">
+        <div class="flex items-center space-x-2 truncate">
+            <span class="bg-black/30 px-2 py-0.5 rounded text-xs uppercase font-bold tracking-wider animate-pulse">App Ready</span>
+            <span id="install-banner-text" class="truncate">🔥 Install Mr. Zinger on your phone for lightning fast ordering & exclusive discounts!</span>
+        </div>
+        <div class="flex items-center space-x-2 shrink-0">
+            <button onclick="shareApp()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs font-bold transition flex items-center space-x-1">
+                <i class="fa-solid fa-share-nodes"></i> <span class="hidden sm:inline">Share App</span>
+            </button>
+            <button onclick="dismissInstallBanner()" class="text-white/80 hover:text-white px-1">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-40 bg-gray-900/95 backdrop-blur border-b border-gray-800 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo & Brand Name -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('menu')">
+                <div class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-brand-yellow shadow-lg bg-black flex items-center justify-center shrink-0">
+                    <img id="nav-logo-img" src="assets/logo.png" alt="Mr. Zinger Logo" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/e53e3e/ffffff?text=Mr.Z'">
+                </div>
+                <div>
+                    <h1 id="nav-brand-title" class="text-xl sm:text-2xl font-black font-heading tracking-wider bg-gradient-to-r from-brand-yellow via-brand-orange to-brand-red bg-clip-text text-transparent">Mr. ZINGER</h1>
+                    <p class="text-xs text-gray-400 font-medium tracking-wide">CRISPY • JUICY • EPIC</p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-semibold">
+                <button onclick="switchTab('menu')" id="nav-btn-menu" class="text-brand-yellow transition hover:text-brand-yellow flex items-center space-x-1.5 py-2">
+                    <i class="fa-solid fa-utensils"></i><span>Menu</span>
+                </button>
+                <button onclick="switchTab('deals')" id="nav-btn-deals" class="text-gray-300 hover:text-brand-yellow transition flex items-center space-x-1.5 py-2">
+                    <i class="fa-solid fa-fire text-brand-red"></i><span>Hot Deals</span>
+                </button>
+                <button onclick="switchTab('contact')" id="nav-btn-contact" class="text-gray-300 hover:text-brand-yellow transition flex items-center space-x-1.5 py-2">
+                    <i class="fa-solid fa-location-dot"></i><span>Contact & Store</span>
+                </button>
+                <button onclick="openAdminModal()" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow border border-brand-yellow/30 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 text-xs font-bold shadow-sm">
+                    <i class="fa-solid fa-lock"></i><span>Admin Panel</span>
+                </button>
+            </nav>
+
+            <!-- Actions (Cart & User Auth) -->
+            <div class="flex items-center space-x-3">
+                <!-- User Profile / Google Sign In -->
+                <div id="auth-container">
+                    <button onclick="openAuthModal()" class="bg-white hover:bg-gray-100 text-gray-900 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow transition flex items-center space-x-2">
+                        <i class="fa-brands fa-google text-red-500"></i>
+                        <span class="hidden sm:inline">Google Sign In</span>
+                        <span class="sm:hidden">Sign In</span>
+                    </button>
+                </div>
+
+                <!-- Cart Button -->
+                <button onclick="toggleCartDrawer()" class="relative bg-brand-red hover:bg-brand-darkred text-white p-2.5 sm:px-4 sm:py-2.5 rounded-xl font-bold transition flex items-center space-x-2 shadow-lg shadow-red-900/30">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span class="hidden sm:inline text-sm">Cart</span>
+                    <span id="cart-count-badge" class="absolute -top-1.5 -right-1.5 bg-brand-yellow text-gray-900 text-xs w-5 h-5 rounded-full flex items-center justify-center font-black shadow">0</span>
+                </button>
+
+                <!-- Mobile Menu Toggle -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-900 border-t border-gray-800 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('menu'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-200 hover:bg-gray-800">
+                <i class="fa-solid fa-utensils mr-2 text-brand-yellow"></i> Menu
+            </button>
+            <button onclick="switchTab('deals'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-200 hover:bg-gray-800">
+                <i class="fa-solid fa-fire mr-2 text-brand-red"></i> Hot Deals
+            </button>
+            <button onclick="switchTab('contact'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-200 hover:bg-gray-800">
+                <i class="fa-solid fa-location-dot mr-2 text-brand-orange"></i> Contact & Store
+            </button>
+            <button onclick="openAdminModal(); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-brand-yellow bg-gray-800/80">
+                <i class="fa-solid fa-lock mr-2"></i> Admin Panel
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-grow">
+
+        <!-- SLIDER / RUNNING BANNER SECTION -->
+        <section class="relative bg-gray-900 overflow-hidden border-b border-gray-800">
+            <div id="slider-container" class="relative w-full h-48 sm:h-64 lg:h-72 overflow-hidden">
+                <!-- Slides injected via JS -->
+            </div>
+            <!-- Slider Indicators -->
+            <div id="slider-dots" class="absolute bottom-3 left-0 right-0 flex justify-center space-x-2 z-20"></div>
+        </section>
+
+        <!-- MAIN LAYOUT: CONTENT + SIDE VIDEO PANEL -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                
+                <!-- Left 3 Columns: Dynamic Tab Content (Menu / Deals / Contact) -->
+                <div class="lg:col-span-3 space-y-6">
+                    
+                    <!-- TAB 1: MENU & ORDERING -->
+                    <div id="tab-menu" class="space-y-6">
+                        
+                        <!-- Search & Category Filters -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900 p-4 rounded-2xl border border-gray-800 shadow-md">
+                            <!-- Category Buttons -->
+                            <div id="category-filters" class="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
+                                <button onclick="filterCategory('All')" class="category-btn active-cat px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap bg-brand-red text-white shadow">All Items</button>
+                                <!-- Dynamic category pills injected via JS -->
+                            </div>
+                            <!-- Search Bar -->
+                            <div class="relative w-full sm:w-72">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </span>
+                                <input type="text" id="menu-search" oninput="handleSearch(this.value)" placeholder="Search zinger burgers, fries..." class="w-full pl-10 pr-4 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-brand-yellow text-gray-200 placeholder-gray-500">
+                            </div>
+                        </div>
+
+                        <!-- Menu Items Grid -->
+                        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Items injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: DEALS -->
+                    <div id="tab-deals" class="hidden space-y-6">
+                        <div class="bg-gradient-to-r from-red-900/60 to-gray-900 p-6 rounded-2xl border border-red-500/30">
+                            <h2 class="text-2xl font-black font-heading text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-fire text-brand-yellow"></i> <span>Exclusive Combo & Zinger Deals</span>
+                            </h2>
+                            <p class="text-gray-300 text-sm mt-1">Save big with our specially crafted family and buddy zingers packages!</p>
+                        </div>
+                        <div id="deals-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Deals items injected here -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: CONTACT & STORE -->
+                    <div id="tab-contact" class="hidden space-y-6">
+                        <div class="bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-800 space-y-6 shadow-xl">
+                            <div class="border-b border-gray-800 pb-4">
+                                <h2 class="text-2xl font-black font-heading text-white flex items-center space-x-2">
+                                    <i class="fa-solid fa-store text-brand-yellow"></i> <span id="store-title-view">Mr. Zinger Flagship Outlet</span>
+                                </h2>
+                                <p class="text-gray-400 text-sm mt-1">Visit us or call for instant home delivery and takeaway.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div class="flex items-start space-x-4 bg-gray-950 p-4 rounded-xl border border-gray-800/60">
+                                        <div class="bg-brand-red/20 text-brand-red p-3 rounded-xl text-lg"><i class="fa-solid fa-location-dot"></i></div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-300">Delivery Address</h4>
+                                            <p id="contact-address-view" class="text-sm text-gray-400 mt-1">Main Commercial Market, DHA Phase 6, Karachi, Pakistan</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start space-x-4 bg-gray-950 p-4 rounded-xl border border-gray-800/60">
+                                        <div class="bg-brand-yellow/20 text-brand-yellow p-3 rounded-xl text-lg"><i class="fa-solid fa-phone"></i></div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-300">Helpline & WhatsApp Order</h4>
+                                            <p id="contact-phone-view" class="text-sm text-gray-400 mt-1">+92 300 1234567 / 021-3892019</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start space-x-4 bg-gray-950 p-4 rounded-xl border border-gray-800/60">
+                                        <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl text-lg"><i class="fa-solid fa-clock"></i></div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-300">Timing & Hours</h4>
+                                            <p id="contact-hours-view" class="text-sm text-gray-400 mt-1">Monday – Sunday: 12:00 PM – 03:00 AM</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-950 rounded-xl overflow-hidden border border-gray-800 flex flex-col justify-center items-center p-6 text-center">
+                                    <div class="w-16 h-16 bg-brand-red/20 text-brand-red rounded-full flex items-center justify-center text-2xl mb-4">
+                                        <i class="fa-solid fa-motorcycle"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-white">Superfast 30-Minute Delivery</h3>
+                                    <p class="text-xs text-gray-400 mt-2 max-w-xs">Hot, crispy and fresh burgers delivered right to your doorstep packed in thermal insulated boxes.</p>
+                                    <button onclick="switchTab('menu')" class="mt-6 bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-bold px-6 py-2.5 rounded-xl text-xs transition shadow">
+                                        Order Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right 1 Column: Side Promo / Video Section -->
+                <div class="space-y-6">
+                    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-heading font-black text-base text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-clapperboard text-brand-red"></i> <span>Mr. Zinger TV</span>
+                            </h3>
+                            <span class="bg-brand-red/20 text-brand-red text-xs px-2 py-0.5 rounded font-bold">LIVE</span>
+                        </div>
+                        
+                        <!-- Video Container -->
+                        <div id="side-video-container" class="relative rounded-xl overflow-hidden bg-black aspect-video border border-gray-800 flex items-center justify-center">
+                            <!-- Injected via JS -->
+                        </div>
+
+                        <p class="text-xs text-gray-400 text-center">Watch our secret zinger recipe & behind-the-scenes preparation!</p>
+                    </div>
+
+                    <!-- Quick Download / Install App Card -->
+                    <div class="bg-gradient-to-br from-brand-red/30 via-gray-900 to-gray-900 p-5 rounded-2xl border border-brand-red/40 space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-gray-950 font-black text-lg">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Get Mr. Zinger App</h4>
+                                <p class="text-xs text-gray-300">Add to Home Screen</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400">Never miss a crunchy bite. Install on Android & iPhone instantly.</p>
+                        <button onclick="installAppPrompt()" class="w-full bg-white hover:bg-gray-100 text-gray-950 font-bold py-2 rounded-xl text-xs transition shadow flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-download text-brand-red"></i><span>Install App Now</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 border-t border-gray-800 mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div class="flex items-center space-x-3">
+                <img id="footer-logo-img" src="assets/logo.png" alt="Mr. Zinger" class="w-8 h-8 rounded-full object-cover border border-brand-yellow">
+                <span class="text-sm font-black tracking-wider text-white">MR. ZINGER FAST FOOD</span>
+            </div>
+            <p class="text-xs text-gray-500">© 2026 Mr. Zinger Inc. All rights reserved. Professional Burger Ordering Platform.</p>
+            <div class="flex space-x-4 text-gray-400 text-sm">
+                <a href="#" class="hover:text-brand-yellow transition"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="hover:text-brand-yellow transition"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-brand-yellow transition"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="#" class="hover:text-brand-yellow transition"><i class="fa-brands fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- CART SLIDER / DRAWER -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-gray-900 border-l border-gray-800 shadow-2xl flex flex-col">
+                <!-- Header -->
+                <div class="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-950">
+                    <h3 class="font-heading font-black text-lg text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-bag-shopping text-brand-red"></i> <span>Your Order Cart</span>
+                    </h3>
+                    <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-white p-2">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <!-- Cart Items List -->
+                <div id="cart-items-container" class="flex-grow overflow-y-auto p-4 space-y-4">
+                    <!-- Injected via JS -->
+                </div>
+                <!-- Cart Footer & Checkout -->
+                <div class="p-4 bg-gray-950 border-t border-gray-800 space-y-3">
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal" class="font-bold text-white">Rs. 0</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>Delivery Fee</span>
+                        <span class="font-bold text-white">Rs. 150</span>
+                    </div>
+                    <div class="flex justify-between text-base font-black text-white pt-2 border-t border-gray-800">
+                        <span>Total Amount</span>
+                        <span id="cart-total" class="text-brand-yellow">Rs. 150</span>
+                    </div>
+                    <button onclick="openCheckoutModal()" id="checkout-btn" class="w-full bg-brand-red hover:bg-brand-darkred text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-900/30 text-sm flex items-center justify-center space-x-2">
+                        <span>Proceed to Checkout</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GOOGLE SIGN IN / AUTH MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-brand-red/20 text-brand-red rounded-full flex items-center justify-center text-2xl mx-auto border border-brand-red/30">
+                    <i class="fa-brands fa-google"></i>
+                </div>
+                <h3 class="text-xl font-black font-heading text-white">Sign in to Mr. Zinger</h3>
+                <p class="text-xs text-gray-400">Save delivery addresses, track live order status & get exclusive loyalty rewards.</p>
+            </div>
+            
+            <div id="auth-user-view" class="hidden space-y-4 text-center">
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
+                    <img id="auth-user-avatar" src="" alt="Avatar" class="w-16 h-16 rounded-full mx-auto border-2 border-brand-yellow">
+                    <h4 id="auth-user-name" class="font-bold text-white text-base"></h4>
+                    <p id="auth-user-email" class="text-xs text-gray-400"></p>
+                </div>
+                <button onclick="signOutUser()" class="w-full bg-gray-800 hover:bg-gray-700 text-red-400 font-bold py-2.5 rounded-xl text-xs transition">
+                    Sign Out
+                </button>
+            </div>
+
+            <div id="auth-login-view" class="space-y-4">
+                <button onclick="simulateGoogleSignIn()" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 rounded-xl transition shadow flex items-center justify-center space-x-3 text-sm">
+                    <i class="fa-brands fa-google text-red-500 text-lg"></i>
+                    <span>Continue with Google</span>
+                </button>
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-800"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-xs">OR FAST PHONE SIGN-IN</span>
+                    <div class="flex-grow border-t border-gray-800"></div>
+                </div>
+                <input type="text" id="auth-phone-input" placeholder="Enter Mobile Number (03XX-XXXXXXX)" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow">
+                <button onclick="phoneSignIn()" class="w-full bg-brand-red hover:bg-brand-darkred text-white font-bold py-2.5 rounded-xl text-xs transition">
+                    Verify & Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-xl font-black font-heading text-white flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check text-brand-yellow"></i> <span>Complete Your Order</span>
+            </h3>
+            
+            <form id="checkout-form" onsubmit="submitOrder(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Full Name</label>
+                    <input type="text" id="cust-name" required placeholder="e.g. Ali Khan" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Phone Number</label>
+                    <input type="tel" id="cust-phone" required placeholder="03001234567" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Delivery Address</label>
+                    <textarea id="cust-address" required rows="2" placeholder="House #, Street, Area, City" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Payment Method</label>
+                    <select id="cust-payment" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow">
+                        <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+                        <option value="EasyPaisa / JazzCash">Mobile Wallet (EasyPaisa / JazzCash)</option>
+                        <option value="Credit / Debit Card">Credit / Debit Card</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-black py-3 rounded-xl transition shadow-lg text-sm">
+                    Place Order Now 🚀
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ORDER SUCCESS MODAL -->
+    <div id="success-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-brand-yellow/40 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-3xl mx-auto border border-emerald-500/30 animate-bounce">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-black font-heading text-white">Order Placed Successfully!</h3>
+            <p id="success-order-id" class="text-xs text-brand-yellow font-mono font-bold"></p>
+            <p class="text-xs text-gray-400">Your piping hot zinger burgers are being prepared with love and will arrive in approx. 30 minutes.</p>
+            <button onclick="closeSuccessModal()" class="w-full bg-brand-red hover:bg-brand-darkred text-white font-bold py-2.5 rounded-xl text-xs transition">
+                Back to Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN / PIN MODAL -->
+    <div id="admin-login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-sm w-full p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-brand-yellow/20 text-brand-yellow rounded-full flex items-center justify-center text-xl mx-auto border border-brand-yellow/30">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-lg font-black font-heading text-white">Admin Authentication</h3>
+                <p class="text-xs text-gray-400">Enter secure admin passcode (Default: <code class="text-brand-yellow">1234</code>)</p>
+            </div>
+            <input type="password" id="admin-pin-input" placeholder="Enter PIN code" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-center tracking-widest text-lg font-bold text-white focus:outline-none focus:border-brand-yellow">
+            <button onclick="verifyAdminPin()" class="w-full bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-black py-2.5 rounded-xl text-xs transition">
+                Access Admin Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- COMPREHENSIVE ADMIN DASHBOARD MODAL -->
+    <div id="admin-dashboard-modal" class="fixed inset-0 z-50 bg-gray-950 hidden flex flex-col overflow-hidden">
+        <!-- Admin Top bar -->
+        <div class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-red text-white p-2 rounded-xl"><i class="fa-solid fa-gauge-high"></i></div>
+                <div>
+                    <h2 class="text-lg font-black font-heading text-white">Mr. Zinger Admin Management</h2>
+                    <p class="text-xs text-emerald-400">Live Synchronized with Customer View</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="exportAppData()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-download mr-1"></i> Backup Data
+                </button>
+                <button onclick="closeAdminDashboard()" class="bg-brand-red hover:bg-brand-darkred text-white px-4 py-1.5 rounded-xl text-xs font-bold transition">
+                    Exit Admin
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Workspace Body -->
+        <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+            <!-- Admin Sidebar Navigation -->
+            <div class="w-full md:w-64 bg-gray-900/50 border-r border-gray-800 p-4 space-y-1 shrink-0 overflow-y-auto flex md:flex-col space-x-2 md:space-x-0">
+                <button onclick="switchAdminTab('menu-mgmt')" id="admin-tab-btn-menu-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold bg-brand-red text-white flex items-center space-x-2.5">
+                    <i class="fa-solid fa-utensils"></i> <span>Menu & Images</span>
+                </button>
+                <button onclick="switchAdminTab('slider-mgmt')" id="admin-tab-btn-slider-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-images"></i> <span>Top Slider Banners</span>
+                </button>
+                <button onclick="switchAdminTab('video-mgmt')" id="admin-tab-btn-video-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-clapperboard"></i> <span>Side Video URL</span>
+                </button>
+                <button onclick="switchAdminTab('logo-mgmt')" id="admin-tab-btn-logo-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-shield-halved"></i> <span>Logo & Branding</span>
+                </button>
+                <button onclick="switchAdminTab('contact-mgmt')" id="admin-tab-btn-contact-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-address-book"></i> <span>Contact & Address</span>
+                </button>
+                <button onclick="switchAdminTab('security-mgmt')" id="admin-tab-btn-security-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-key"></i> <span>Admin Code/PIN</span>
+                </button>
+                <button onclick="switchAdminTab('orders-mgmt')" id="admin-tab-btn-orders-mgmt" class="admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5">
+                    <i class="fa-solid fa-receipt"></i> <span>Live Orders Feed</span>
+                </button>
+            </div>
+
+            <!-- Admin Tab Contents -->
+            <div class="flex-grow overflow-y-auto p-6 bg-gray-950 space-y-6">
+                
+                <!-- 1. MENU MANAGEMENT -->
+                <div id="admin-pane-menu-mgmt" class="admin-pane space-y-6">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900 p-4 rounded-xl border border-gray-800">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Manage Menu Items & Images</h3>
+                            <p class="text-xs text-gray-400">Add new burgers, edit prices, or change item images.</p>
+                        </div>
+                        <button onclick="openAddMenuItemModal()" class="bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i> <span>Add New Item</span>
+                        </button>
+                    </div>
+
+                    <div id="admin-menu-items-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Admin menu list injected here -->
+                    </div>
+                </div>
+
+                <!-- 2. SLIDER MANAGEMENT -->
+                <div id="admin-pane-slider-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="flex items-center justify-between bg-gray-900 p-4 rounded-xl border border-gray-800">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Top Promotional Banner / Slider</h3>
+                            <p class="text-xs text-gray-400">Customize running slides, banners and promotional text.</p>
+                        </div>
+                        <button onclick="openAddSlideModal()" class="bg-brand-yellow text-gray-950 font-bold px-4 py-2 rounded-xl text-xs transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Slide
+                        </button>
+                    </div>
+                    <div id="admin-slides-list" class="space-y-4">
+                        <!-- Slides list -->
+                    </div>
+                </div>
+
+                <!-- 3. VIDEO MANAGEMENT -->
+                <div id="admin-pane-video-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-4 max-w-xl">
+                        <h3 class="text-base font-bold text-white">Side Video & Media Link</h3>
+                        <p class="text-xs text-gray-400">Paste YouTube embed URL or direct video link for the side TV widget.</p>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Video URL (YouTube Embed or MP4)</label>
+                            <input type="text" id="admin-video-url-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-brand-yellow">
+                        </div>
+                        <button onclick="saveAdminVideoUrl()" class="bg-brand-yellow text-gray-950 font-bold px-5 py-2 rounded-xl text-xs">
+                            Update Video Widget
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. LOGO & BRANDING -->
+                <div id="admin-pane-logo-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-4 max-w-xl">
+                        <h3 class="text-base font-bold text-white">Logo & Brand Name Management</h3>
+                        <p class="text-xs text-gray-400">Update app brand title and logo image URL.</p>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">App Name</label>
+                            <input type="text" id="admin-brand-title-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Logo Image URL</label>
+                            <input type="text" id="admin-logo-url-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                            <p class="text-[11px] text-gray-500 mt-1">Default logo is preloaded. You can paste any image URL.</p>
+                        </div>
+                        <button onclick="saveAdminLogoAndBrand()" class="bg-brand-yellow text-gray-950 font-bold px-5 py-2 rounded-xl text-xs">
+                            Save Brand Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. CONTACT & ADDRESS MANAGEMENT -->
+                <div id="admin-pane-contact-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-4 max-w-xl">
+                        <h3 class="text-base font-bold text-white">Store Contact & Address Settings</h3>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Store / Outlet Title</label>
+                            <input type="text" id="admin-store-title-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Delivery Address</label>
+                            <textarea id="admin-address-input" rows="2" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Helpline Phone Number</label>
+                            <input type="text" id="admin-phone-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Operating Hours</label>
+                            <input type="text" id="admin-hours-input" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                        </div>
+                        <button onclick="saveAdminContactInfo()" class="bg-brand-yellow text-gray-950 font-bold px-5 py-2 rounded-xl text-xs">
+                            Save Contact Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6. SECURITY & ADMIN CODE -->
+                <div id="admin-pane-security-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-4 max-w-xl">
+                        <h3 class="text-base font-bold text-white">Change Admin Passcode / PIN</h3>
+                        <p class="text-xs text-gray-400">Protect your admin dashboard with a secure 4-digit or custom PIN.</p>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">New Admin PIN</label>
+                            <input type="password" id="admin-new-pin-input" placeholder="Enter new PIN" class="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                        </div>
+                        <button onclick="saveAdminNewPin()" class="bg-brand-red text-white font-bold px-5 py-2 rounded-xl text-xs">
+                            Update Admin PIN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7. LIVE ORDERS FEED -->
+                <div id="admin-pane-orders-mgmt" class="admin-pane hidden space-y-6">
+                    <div class="flex items-center justify-between bg-gray-900 p-4 rounded-xl border border-gray-800">
+                        <h3 class="text-base font-bold text-white">Live Customer Orders</h3>
+                        <button onclick="clearAllOrders()" class="text-red-400 text-xs font-bold hover:underline">Clear Order History</button>
+                    </div>
+                    <div id="admin-orders-list" class="space-y-4">
+                        <!-- Orders list -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT / ADD MENU ITEM MODAL -->
+    <div id="menu-item-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeMenuItemModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="menu-modal-title" class="text-lg font-black font-heading text-white">Add/Edit Menu Item</h3>
+            <input type="hidden" id="edit-item-id">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Item Title</label>
+                <input type="text" id="modal-item-name" required class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Category</label>
+                <select id="modal-item-cat" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                    <option value="Burgers">Burgers</option>
+                    <option value="Zinger Deals">Zinger Deals</option>
+                    <option value="Sides">Sides</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Price (Rs.)</label>
+                <input type="number" id="modal-item-price" required class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Image URL (or upload placeholder)</label>
+                <input type="text" id="modal-item-img" required class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200">
+                <p class="text-[11px] text-gray-500 mt-1">Tip: Paste any direct food image link or use image URLs.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">Description</label>
+                <textarea id="modal-item-desc" rows="2" class="w-full px-3.5 py-2 bg-gray-950 border border-gray-800 rounded-xl text-sm text-gray-200"></textarea>
+            </div>
+            <button onclick="saveMenuItemData()" class="w-full bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-bold py-2.5 rounded-xl text-xs transition">
+                Save Menu Item
+            </button>
+        </div>
+    </div>
+
+    <!-- CUSTOM TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 border border-brand-yellow/50 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-brand-yellow text-lg"></i>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        /* Default App State & Initial Data */
+        const DEFAULT_LOGO = "assets/logo.png";
+        
+        let appState = {
+            brandTitle: "Mr. ZINGER",
+            logoUrl: DEFAULT_LOGO,
+            adminPin: "1234",
+            contact: {
+                title: "Mr. Zinger Flagship Outlet",
+                address: "Main Commercial Market, DHA Phase 6, Karachi, Pakistan",
+                phone: "+92 300 1234567 / 021-3892019",
+                hours: "Monday – Sunday: 12:00 PM – 03:00 AM"
+            },
+            videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            slides: [
+                { id: 1, title: "CRISPY MEGA ZINGER DEAL", subtitle: "Buy 1 Mega Zinger Burger & Get 1 Regular Burger FREE!", badge: "LIMITED TIME", bg: "from-red-900 via-gray-900 to-black", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" },
+                { id: 2, title: "SPICY TOWER ZINGER BURGER", subtitle: "Loaded with double cheese, jalapenos and crispy fillet.", badge: "BESTSELLER", bg: "from-yellow-900 via-gray-900 to-black", img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80" },
+                { id: 3, title: "MIDNIGHT CRAVE COMBO", subtitle: "Free delivery on all orders above Rs. 1000 after 12 AM.", badge: "FREE DELIVERY", bg: "from-orange-900 via-gray-900 to-black", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80" }
+            ],
+            menu: [
+                { id: 1, name: "Mr. Zinger Supreme Burger", category: "Burgers", price: 550, desc: "Extra crispy chicken fillet with signature tangy sauce, fresh lettuce & cheese.", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80" },
+                { id: 2, name: "Spicy Jalapeno Tower Burger", category: "Burgers", price: 650, desc: "Double zinger fillet layered with fiery jalapenos, spicy mayo and cheddar slice.", img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=500&q=80" },
+                { id: 3, name: "Classic Zinger Burger", category: "Burgers", price: 450, desc: "Golden fried zinger fillet with crisp iceberg and creamy mayonnaise in toasted sesame bun.", img: "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=500&q=80" },
+                { id: 4, name: "Buddy Zinger Deal", category: "Zinger Deals", price: 1199, desc: "2 Classic Zinger Burgers + 2 Regular Fries + 2 Cold Drinks", img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=500&q=80" },
+                { id: 5, name: "Family Feast Zinger Box", category: "Zinger Deals", price: 2399, desc: "4 Supreme Zingers + Large Family Fries + 1.5L Drink + 6 Hot Wings", img: "https://images.unsplash.com/photo-1610440042657-612c34d95e4f?auto=format&fit=crop&w=500&q=80" },
+                { id: 6, name: "Loaded Masala Fries", category: "Sides", price: 320, desc: "Crispy french fries topped with liquid cheddar cheese, jalapenos and special spices.", img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=500&q=80" },
+                { id: 7, name: "Crispy Hot Wings (6 Pcs)", category: "Sides", price: 390, desc: "Juicy chicken wings coated in fiery crunchy batter.", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=500&q=80" },
+                { id: 8, name: "Soft Drink (500ml)", category: "Drinks", price: 120, desc: "Chilled carbonated beverage.", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=500&q=80" }
+            ],
+            orders: []
+        };
+
+        let cart = [];
+        let currentCategory = 'All';
+        let searchQuery = '';
+        let currentSlideIndex = 0;
+        let slideInterval;
+        let currentUser = null;
+
+        function loadAppData() {
+            const saved = localStorage.getItem('mr_zinger_app_state');
+            if (saved) {
+                try {
+                    appState = JSON.parse(saved);
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        function saveAppData() {
+            localStorage.setItem('mr_zinger_app_state', JSON.stringify(appState));
+        }
+
+        window.onload = function() {
+            loadAppData();
+            renderAll();
+            startSliderTimer();
+        };
+
+        function renderAll() {
+            renderBranding();
+            renderSlider();
+            renderCategories();
+            renderMenu();
+            renderDeals();
+            renderContact();
+            renderSideVideo();
+            updateCartBadge();
+        }
+
+        function renderBranding() {
+            document.getElementById('nav-brand-title').innerText = appState.brandTitle;
+            document.getElementById('nav-logo-img').src = appState.logoUrl;
+            document.getElementById('footer-logo-img').src = appState.logoUrl;
+        }
+
+        let slideTimer;
+        function renderSlider() {
+            const container = document.getElementById('slider-container');
+            const dotsContainer = document.getElementById('slider-dots');
+            if (!container || !appState.slides.length) return;
+
+            let html = '';
+            let dotsHtml = '';
+
+            appState.slides.forEach((slide, idx) => {
+                const activeClass = idx === currentSlideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none';
+                html += `
+                    <div class="absolute inset-0 bg-gradient-to-r ${slide.bg} slide-transition ${activeClass} flex items-center px-6 sm:px-12 lg:px-16">
+                        <div class="max-w-xl space-y-2 z-10">
+                            <span class="bg-brand-red text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">${slide.badge}</span>
+                            <h2 class="text-xl sm:text-3xl lg:text-4xl font-black font-heading text-white">${slide.title}</h2>
+                            <p class="text-xs sm:text-sm text-gray-300">${slide.subtitle}</p>
+                            <button onclick="switchTab('menu')" class="mt-2 bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow">
+                                Order Now
+                            </button>
+                        </div>
+                        <div class="absolute right-4 sm:right-12 top-1/2 -translate-y-1/2 w-40 sm:w-64 lg:w-80 h-32 sm:h-48 lg:h-56 rounded-2xl overflow-hidden shadow-2xl border border-white/10 hidden sm:block">
+                            <img src="${slide.img}" alt="${slide.title}" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                `;
+                dotsHtml += `<button onclick="setSlide(${idx})" class="w-2.5 h-2.5 rounded-full transition ${idx === currentSlideIndex ? 'bg-brand-yellow w-6' : 'bg-white/40'}"></button>`;
+            });
+
+            container.innerHTML = html;
+            dotsContainer.innerHTML = dotsHtml;
+        }
+
+        function setSlide(idx) {
+            currentSlideIndex = idx;
+            renderSlider();
+            resetSliderTimer();
+        }
+
+        function startSliderTimer() {
+            if (slideTimer) clearInterval(slideTimer);
+            slideTimer = setInterval(() => {
+                if (appState.slides.length > 0) {
+                    currentSlideIndex = (currentSlideIndex + 1) % appState.slides.length;
+                    renderSlider();
+                }
+            }, 5000);
+        }
+
+        function resetSliderTimer() {
+            startSliderTimer();
+        }
+
+        function renderSideVideo() {
+            const container = document.getElementById('side-video-container');
+            let url = appState.videoUrl || "";
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                let embedUrl = url;
+                if (url.includes('watch?v=')) {
+                    embedUrl = url.replace('watch?v=', 'embed/');
+                }
+                container.innerHTML = `<iframe src="${embedUrl}" class="w-full h-full object-cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else {
+                container.innerHTML = `<video src="${url}" autoplay muted loop class="w-full h-full object-cover"></video>`;
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('category-filters');
+            const cats = ['All', ...new Set(appState.menu.map(i => i.category))];
+            let html = '';
+            cats.forEach(cat => {
+                const isActive = currentCategory === cat;
+                const activeClass = isActive ? 'bg-brand-red text-white shadow' : 'bg-gray-900 text-gray-300 hover:bg-gray-800';
+                html += `<button onclick="filterCategory('${cat}')" class="category-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${activeClass}">${cat}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            renderCategories();
+            renderMenu();
+        }
+
+        function handleSearch(val) {
+            searchQuery = val.toLowerCase().trim();
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-grid');
+            let items = appState.menu;
+
+            if (currentCategory !== 'All') {
+                items = items.filter(i => i.category === currentCategory);
+            }
+
+            if (searchQuery) {
+                items = items.filter(i => i.name.toLowerCase().includes(searchQuery) || i.desc.toLowerCase().includes(searchQuery));
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 text-sm">No menu items found.</div>`;
+                return;
+            }
+
+            let html = '';
+            items.forEach(item => {
+                html += `
+                    <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl hover:border-brand-yellow/50 transition group flex flex-col">
+                        <div class="relative h-48 overflow-hidden bg-gray-950">
+                            <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x300/1a202c/ffffff?text=Mr.Zinger'">
+                            <span class="absolute top-3 left-3 bg-black/70 backdrop-blur text-brand-yellow text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${item.category}</span>
+                            <span class="absolute bottom-3 right-3 bg-brand-red text-white text-xs font-black px-3 py-1 rounded-xl shadow">Rs. ${item.price}</span>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow space-y-2">
+                            <h3 class="font-heading font-black text-base text-white">${item.name}</h3>
+                            <p class="text-xs text-gray-400 line-clamp-2 flex-grow">${item.desc}</p>
+                            <button onclick="addToCart(${item.id})" class="w-full mt-3 bg-brand-yellow hover:bg-brand-darkyellow text-gray-950 font-black py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-cart-plus"></i> <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderDeals() {
+            const container = document.getElementById('deals-grid');
+            const deals = appState.menu.filter(i => i.category === 'Zinger Deals' || i.name.toLowerCase().includes('deal') || i.name.toLowerCase().includes('feast'));
+            
+            let html = '';
+            deals.forEach(item => {
+                html += `
+                    <div class="bg-gradient-to-br from-gray-900 to-gray-950 border border-brand-red/30 rounded-2xl overflow-hidden shadow-xl group flex flex-col">
+                        <div class="relative h-48 overflow-hidden bg-black">
+                            <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase">HOT DEAL</span>
+                            <span class="absolute bottom-3 right-3 bg-brand-yellow text-gray-950 text-xs font-black px-3 py-1 rounded-xl shadow">Rs. ${item.price}</span>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow space-y-2">
+                            <h3 class="font-heading font-black text-base text-white">${item.name}</h3>
+                            <p class="text-xs text-gray-400 flex-grow">${item.desc}</p>
+                            <button onclick="addToCart(${item.id})" class="w-full mt-3 bg-brand-red hover:bg-brand-darkred text-white font-black py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-fire"></i> <span>Order Deal Now</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderContact() {
+            document.getElementById('store-title-view').innerText = appState.contact.title;
+            document.getElementById('contact-address-view').innerText = appState.contact.address;
+            document.getElementById('contact-phone-view').innerText = appState.contact.phone;
+            document.getElementById('contact-hours-view').innerText = appState.contact.hours;
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-menu').classList.add('hidden');
+            document.getElementById('tab-deals').classList.add('hidden');
+            document.getElementById('tab-contact').classList.add('hidden');
+
+            document.getElementById('nav-btn-menu').className = "text-gray-300 hover:text-brand-yellow transition flex items-center space-x-1.5 py-2";
+            document.getElementById('nav-btn-deals').className = "text-gray-300 hover:text-brand-yellow transition flex items-center space-x-1.5 py-2";
+            document.getElementById('nav-btn-contact').className = "text-gray-300 hover:text-brand-yellow transition flex items-center space-x-1.5 py-2";
+
+            if (tab === 'menu') {
+                document.getElementById('tab-menu').classList.remove('hidden');
+                document.getElementById('nav-btn-menu').className = "text-brand-yellow font-bold transition flex items-center space-x-1.5 py-2 border-b-2 border-brand-yellow";
+            } else if (tab === 'deals') {
+                document.getElementById('tab-deals').classList.remove('hidden');
+                document.getElementById('nav-btn-deals').className = "text-brand-yellow font-bold transition flex items-center space-x-1.5 py-2 border-b-2 border-brand-yellow";
+            } else if (tab === 'contact') {
+                document.getElementById('tab-contact').classList.remove('hidden');
+                document.getElementById('nav-btn-contact').className = "text-brand-yellow font-bold transition flex items-center space-x-1.5 py-2 border-b-2 border-brand-yellow";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function addToCart(id) {
+            const item = appState.menu.find(i => i.id === id);
+            if (!item) return;
+
+            const existing = cart.find(c => c.id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...item, qty: 1 });
+            }
+            updateCartBadge();
+            renderCartDrawer();
+            showToast(`Added ${item.name} to cart!`);
+        }
+
+        function updateQuantity(id, change) {
+            const item = cart.find(c => c.id === id);
+            if (!item) return;
+            item.qty += change;
+            if (item.qty <= 0) {
+                cart = cart.filter(c => c.id !== id);
+            }
+            updateCartBadge();
+            renderCartDrawer();
+        }
+
+        function updateCartBadge() {
+            const count = cart.reduce((acc, curr) => acc + curr.qty, 0);
+            document.getElementById('cart-count-badge').innerText = count;
+        }
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cart-drawer');
+            drawer.classList.toggle('hidden');
+            renderCartDrawer();
+        }
+
+        function renderCartDrawer() {
+            const container = document.getElementById('cart-items-container');
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="py-16 text-center text-gray-500 text-sm space-y-2"><i class="fa-solid fa-basket-shopping text-3xl text-gray-600"></i><p>Your cart is empty.</p></div>`;
+                document.getElementById('cart-subtotal').innerText = 'Rs. 0';
+                document.getElementById('cart-total').innerText = 'Rs. 150';
+                return;
+            }
+
+            let html = '';
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.qty;
+                html += `
+                    <div class="flex items-center justify-between bg-gray-950 p-3 rounded-xl border border-gray-800">
+                        <img src="${item.img}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+                        <div class="flex-grow px-3">
+                            <h4 class="text-xs font-bold text-white">${item.name}</h4>
+                            <p class="text-xs text-brand-yellow font-bold">Rs. ${item.price}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="updateQuantity(${item.id}, -1)" class="w-6 h-6 bg-gray-800 text-white rounded flex items-center justify-center text-xs hover:bg-gray-700">-</button>
+                            <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)" class="w-6 h-6 bg-gray-800 text-white rounded flex items-center justify-center text-xs hover:bg-gray-700">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            document.getElementById('cart-subtotal').innerText = `Rs. ${subtotal}`;
+            document.getElementById('cart-total').innerText = `Rs. ${subtotal > 0 ? subtotal + 150 : 0}`;
+        }
+
+        function openCheckoutModal() {
+            if (cart.length === 0) {
+                showToast("Your cart is empty!");
+                return;
+            }
+            toggleCartDrawer();
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkout-modal').classList.add('hidden');
+        }
+
+        function submitOrder(e) {
+            e.preventDefault();
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            const address = document.getElementById('cust-address').value;
+            const payment = document.getElementById('cust-payment').value;
+
+            const subtotal = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+            const total = subtotal + 150;
+
+            const order = {
+                id: 'ZING-' + Math.floor(100000 + Math.random() * 900000),
+                date: new Date().toLocaleString(),
+                name, phone, address, payment,
+                items: [...cart],
+                total,
+                status: 'Pending'
+            };
+
+            appState.orders.unshift(order);
+            saveAppData();
+
+            cart = [];
+            updateCartBadge();
+            closeCheckoutModal();
+
+            document.getElementById('success-order-id').innerText = `Order Reference: #${order.id}`;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        function openAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (currentUser) {
+                document.getElementById('auth-user-view').classList.remove('hidden');
+                document.getElementById('auth-login-view').classList.add('hidden');
+                document.getElementById('auth-user-name').innerText = currentUser.name;
+                document.getElementById('auth-user-email').innerText = currentUser.email;
+                document.getElementById('auth-user-avatar').src = currentUser.avatar;
+            } else {
+                document.getElementById('auth-user-view').classList.add('hidden');
+                document.getElementById('auth-login-view').classList.remove('hidden');
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function simulateGoogleSignIn() {
+            currentUser = {
+                name: "Ali Ahmed Khan",
+                email: "ali.khan.zinger@gmail.com",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+            };
+            closeAuthModal();
+            showToast("Successfully signed in with Google!");
+            document.getElementById('auth-container').innerHTML = `
+                <div onclick="openAuthModal()" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-xl cursor-pointer border border-gray-700">
+                    <img src="${currentUser.avatar}" class="w-7 h-7 rounded-full object-cover">
+                    <span class="text-xs font-bold text-white hidden sm:inline">${currentUser.name.split(' ')[0]}</span>
+                </div>
+            `;
+        }
+
+        function phoneSignIn() {
+            const phone = document.getElementById('auth-phone-input').value;
+            if (!phone || phone.length < 10) {
+                showToast("Please enter a valid phone number");
+                return;
+            }
+            currentUser = {
+                name: "Customer (" + phone + ")",
+                email: phone + "@mrzinger.pk",
+                avatar: "https://placehold.co/100x100/e53e3e/ffffff?text=User"
+            };
+            closeAuthModal();
+            showToast("Phone verified successfully!");
+        }
+
+        function signOutUser() {
+            currentUser = null;
+            closeAuthModal();
+            showToast("Signed out successfully");
+            document.getElementById('auth-container').innerHTML = `
+                <button onclick="openAuthModal()" class="bg-white hover:bg-gray-100 text-gray-900 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow transition flex items-center space-x-2">
+                    <i class="fa-brands fa-google text-red-500"></i>
+                    <span class="hidden sm:inline">Google Sign In</span>
+                    <span class="sm:hidden">Sign In</span>
+                </button>
+            `;
+        }
+
+        function openAdminModal() {
+            document.getElementById('admin-login-modal').classList.remove('hidden');
+            document.getElementById('admin-pin-input').value = '';
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function verifyAdminPin() {
+            const pin = document.getElementById('admin-pin-input').value;
+            if (pin === appState.adminPin) {
+                closeAdminLoginModal();
+                openAdminDashboard();
+                showToast("Admin access granted!");
+            } else {
+                showToast("Incorrect Admin PIN! (Default is 1234)");
+            }
+        }
+
+        function openAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+            switchAdminTab('menu-mgmt');
+            renderAdminMenu();
+            renderAdminSlides();
+            renderAdminOrders();
+            document.getElementById('admin-video-url-input').value = appState.videoUrl;
+            document.getElementById('admin-brand-title-input').value = appState.brandTitle;
+            document.getElementById('admin-logo-url-input').value = appState.logoUrl;
+            document.getElementById('admin-store-title-input').value = appState.contact.title;
+            document.getElementById('admin-address-input').value = appState.contact.address;
+            document.getElementById('admin-phone-input').value = appState.contact.phone;
+            document.getElementById('admin-hours-input').value = appState.contact.hours;
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.add('hidden');
+            renderAll();
+        }
+
+        function switchAdminTab(tab) {
+            const panes = document.querySelectorAll('.admin-pane');
+            panes.forEach(p => p.classList.add('hidden'));
+
+            const btns = document.querySelectorAll('.admin-nav-btn');
+            btns.forEach(b => {
+                b.className = "admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:bg-gray-800 flex items-center space-x-2.5";
+            });
+
+            document.getElementById(`admin-pane-${tab}`).classList.remove('hidden');
+            document.getElementById(`admin-tab-btn-${tab}`).className = "admin-nav-btn w-full text-left px-4 py-3 rounded-xl text-xs font-bold bg-brand-red text-white flex items-center space-x-2.5 shadow";
+        }
+
+        function renderAdminMenu() {
+            const container = document.getElementById('admin-menu-items-list');
+            let html = '';
+            appState.menu.forEach(item => {
+                html += `
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center space-x-4">
+                        <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover bg-black shrink-0">
+                        <div class="flex-grow min-w-0">
+                            <span class="text-[10px] font-bold text-brand-yellow uppercase">${item.category}</span>
+                            <h4 class="text-sm font-bold text-white truncate">${item.name}</h4>
+                            <p class="text-xs text-brand-red font-bold">Rs. ${item.price}</p>
+                        </div>
+                        <div class="flex flex-col space-y-1 shrink-0">
+                            <button onclick="editMenuItem(${item.id})" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-xs font-bold">Edit</button>
+                            <button onclick="deleteMenuItem(${item.id})" class="bg-red-900/40 hover:bg-red-900 text-red-300 px-3 py-1 rounded text-xs font-bold">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function openAddMenuItemModal() {
+            document.getElementById('menu-modal-title').innerText = "Add New Menu Item";
+            document.getElementById('edit-item-id').value = "";
+            document.getElementById('modal-item-name').value = "";
+            document.getElementById('modal-item-price').value = "";
+            document.getElementById('modal-item-img').value = "";
+            document.getElementById('modal-item-desc').value = "";
+            document.getElementById('menu-item-modal').classList.remove('hidden');
+        }
+
+        function editMenuItem(id) {
+            const item = appState.menu.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('menu-modal-title').innerText = "Edit Menu Item";
+            document.getElementById('edit-item-id').value = item.id;
+            document.getElementById('modal-item-name').value = item.name;
+            document.getElementById('modal-item-cat').value = item.category;
+            document.getElementById('modal-item-price').value = item.price;
+            document.getElementById('modal-item-img').value = item.img;
+            document.getElementById('modal-item-desc').value = item.desc;
+            document.getElementById('menu-item-modal').classList.remove('hidden');
+        }
+
+        function closeMenuItemModal() {
+            document.getElementById('menu-item-modal').classList.add('hidden');
+        }
+
+        function saveMenuItemData() {
+            const id = document.getElementById('edit-item-id').value;
+            const name = document.getElementById('modal-item-name').value;
+            const category = document.getElementById('modal-item-cat').value;
+            const price = Number(document.getElementById('modal-item-price').value);
+            const img = document.getElementById('modal-item-img').value;
+            const desc = document.getElementById('modal-item-desc').value;
+
+            if (!name || !price) {
+                showToast("Please enter item name and price.");
+                return;
+            }
+
+            if (id) {
+                const item = appState.menu.find(i => i.id == id);
+                if (item) {
+                    item.name = name;
+                    item.category = category;
+                    item.price = price;
+                    item.img = img;
+                    item.desc = desc;
+                }
+            } else {
+                const newItem = {
+                    id: Date.now(),
+                    name, category, price, img, desc
+                };
+                appState.menu.push(newItem);
+            }
+
+            saveAppData();
+            closeMenuItemModal();
+            renderAdminMenu();
+            showToast("Menu saved successfully!");
+        }
+
+        function deleteMenuItem(id) {
+            appState.menu = appState.menu.filter(i => i.id !== id);
+            saveAppData();
+            renderAdminMenu();
+            showToast("Item deleted");
+        }
+
+        function renderAdminSlides() {
+            const container = document.getElementById('admin-slides-list');
+            let html = '';
+            appState.slides.forEach((slide, idx) => {
+                html += `
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <img src="${slide.img}" class="w-16 h-12 rounded object-cover">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">${slide.title}</h4>
+                                <p class="text-xs text-gray-400">${slide.subtitle}</p>
+                            </div>
+                        </div>
+                        <button onclick="deleteSlide(${slide.id})" class="text-red-400 text-xs font-bold hover:underline">Remove</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function openAddSlideModal() {
+            const title = prompt("Enter slide title:");
+            if (!title) return;
+            const subtitle = prompt("Enter slide subtitle/promo:");
+            const img = prompt("Enter slide image URL:", "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80");
+            
+            appState.slides.push({
+                id: Date.now(),
+                title,
+                subtitle: subtitle || "Special discount offer",
+                badge: "PROMO",
+                bg: "from-red-900 via-gray-900 to-black",
+                img: img || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80"
+            });
+            saveAppData();
+            renderAdminSlides();
+            showToast("Slide added!");
+        }
+
+        function deleteSlide(id) {
+            appState.slides = appState.slides.filter(s => s.id !== id);
+            saveAppData();
+            renderAdminSlides();
+            showToast("Slide removed");
+        }
+
+        function saveAdminVideoUrl() {
+            const url = document.getElementById('admin-video-url-input').value;
+            appState.videoUrl = url;
+            saveAppData();
+            renderSideVideo();
+            showToast("Video widget updated successfully!");
+        }
+
+        function saveAdminLogoAndBrand() {
+            const title = document.getElementById('admin-brand-title-input').value;
+            const logo = document.getElementById('admin-logo-url-input').value;
+            if (title) appState.brandTitle = title;
+            if (logo) appState.logoUrl = logo;
+            saveAppData();
+            renderBranding();
+            showToast("Brand settings updated!");
+        }
+
+        function saveAdminContactInfo() {
+            appState.contact.title = document.getElementById('admin-store-title-input').value;
+            appState.contact.address = document.getElementById('admin-address-input').value;
+            appState.contact.phone = document.getElementById('admin-phone-input').value;
+            appState.contact.hours = document.getElementById('admin-hours-input').value;
+            saveAppData();
+            renderContact();
+            showToast("Contact details saved!");
+        }
+
+        function saveAdminNewPin() {
+            const newPin = document.getElementById('admin-new-pin-input').value;
+            if (!newPin || newPin.length < 3) {
+                showToast("Please enter a valid PIN code.");
+                return;
+            }
+            appState.adminPin = newPin;
+            saveAppData();
+            document.getElementById('admin-new-pin-input').value = '';
+            showToast("Admin PIN updated successfully!");
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('admin-orders-list');
+            if (!appState.orders.length) {
+                container.innerHTML = `<div class="text-center text-gray-500 py-8 text-xs">No orders received yet.</div>`;
+                return;
+            }
+
+            let html = '';
+            appState.orders.forEach(o => {
+                let itemsList = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+                html += `
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-brand-yellow">#${o.id}</span>
+                            <span class="text-xs text-gray-400">${o.date}</span>
+                        </div>
+                        <div class="text-xs text-gray-200">
+                            <strong>Customer:</strong> ${o.name} (${o.phone})<br>
+                            <strong>Address:</strong> ${o.address}<br>
+                            <strong>Payment:</strong> ${o.payment}<br>
+                            <strong>Items:</strong> ${itemsList}
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-800">
+                            <span class="text-sm font-black text-white">Total: Rs. ${o.total}</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-bold">${o.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function clearAllOrders() {
+            if (confirm("Clear all order history?")) {
+                appState.orders = [];
+                saveAppData();
+                renderAdminOrders();
+                showToast("Order history cleared");
+            }
+        }
+
+        function exportAppData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "mr_zinger_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Backup downloaded!");
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mr. Zinger App',
+                    text: 'Order the most delicious crispy zinger burgers from Mr. Zinger!',
+                    url: window.location.href,
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast("App link copied to clipboard!");
+            }
+        }
+
+        function installAppPrompt() {
+            showToast("To install: Tap browser menu (...) and select 'Add to Home Screen'.");
+        }
+
+        function dismissInstallBanner() {
+            document.getElementById('install-banner').style.display = 'none';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
